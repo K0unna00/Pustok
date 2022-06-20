@@ -1,0 +1,51 @@
+﻿@model List<AppUser>;
+@inject UserManager<AppUser> _userManager;
+@{
+    ViewData["Title"] = "Index";
+    int count = 0;
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-10 mx-auto">
+            <a asp-action="CreateAdmin" class="btn btn-primary">Create</a>
+        </div>
+        <div class="col-md-10 mx-auto">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">FullName</th>
+                        <th scope="col">UserName</th>
+                        <th scope="col">Role</th>
+                        <th scope="col">Email</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var member in Model)
+                    {
+                        var roles = await _userManager.GetRolesAsync(member);
+                        count++;
+                        <tr>
+                            <th scope="row">@count</th>
+                            <td>@member.Fullname</td>
+                            <td>@member.UserName</td>
+                            <td>
+                                @foreach(string role in roles)
+                                {
+                                    @role
+                                }
+                            </td>
+                            <td>@member.Email</td>
+                            <td>
+                                <a asp-action="edit" asp-route-id="@member.Id" class="btn btn-warning">Edit</a>
+                                <a asp-action="sweetdelete" asp-route-id="@member.Id" class="btn btn-danger sweet-delete">Delete</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+

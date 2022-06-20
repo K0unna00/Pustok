@@ -1,0 +1,41 @@
+﻿@model AdminRegisterViewModel;
+@{
+
+    ViewData["Title"] = "Create";
+}
+
+<div class="container">
+
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <form asp-action="CreateAdmin" method="post">
+                <div class="mb-3">
+                    <label asp-for="UserName" class="form-label">UserName</label>
+                    <input asp-for="UserName" type="text" class="form-control" >
+                    <span class="text-danger" asp-validation-for="UserName"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="FullName" class="form-label">FullName</label>
+                    <input asp-for="FullName" type="text" class="form-control" >
+                    <span class="text-danger" asp-validation-for="FullName"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Password" class="form-label">Password</label>
+                    <input asp-for="Password"  class="form-control" >
+                    <span class="text-danger" asp-validation-for="Password"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="ConfirmPassword" class="form-label">Password Again</label>
+                    <input asp-for="ConfirmPassword"  class="form-control" >
+                    <span class="text-danger" asp-validation-for="ConfirmPassword"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label">Email</label>
+                    <input asp-for="Email"  class="form-control" >
+                    <span class="text-danger" asp-validation-for="Email"></span>
+                </div>
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </form>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,22 @@
+﻿@model Setting
+@{
+
+    ViewData["Title"] = "Edit";
+}
+
+<div class="container">
+
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <form asp-action="update" method="post">
+                <h2>@Model.Key</h2>
+                <div class="mb-3">
+                    <label asp-for="Value" class="form-label">BirthDate</label>
+                    <input asp-for="Value"  class="form-control" >
+                    <span class="text-danger" asp-validation-for="Value"></span>
+                </div>
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </form>
+        </div>
+    </div>
+</div>
