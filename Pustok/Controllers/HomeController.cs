@@ -1,7 +1,10 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using FluentEmail.Core;
+using MailKit.Net.Smtp;
+using MailKit.Security;
+using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Pustok.DAL;
 using Pustok.Models;
 using Pustok.ViewModels;
@@ -9,7 +12,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Mail;
 using System.Threading.Tasks;
+using MimeKit;
+using MimeKit.Text;
 
 namespace Pustok.Controllers
 {
@@ -72,6 +78,14 @@ namespace Pustok.Controllers
                     {
                         return Ok(result.Errors);
                     }
+
+                    string token = await _userManager.GenerateEmailConfirmationTokenAsync(member);
+                    var url = Url.Action("ConfirmEmail", "Account", new
+                    {
+                        email = member.Email,
+                        token = token
+                    }, Request.Scheme);
+                    //SendEmail(url);
                     return RedirectToAction("MemberLogin", "Home");
                 }
                 ModelState.AddModelError("", "Passwords Not Macking");
@@ -97,12 +111,20 @@ namespace Pustok.Controllers
                 if (member != null)
                 {
                     var result = await _signInManager.PasswordSignInAsync(member, user.Password, false, false);
-                    if (result.Succeeded)
+                    if (!result.Succeeded)
                     {
+                        ModelState.AddModelError("", "Input Correct Informations");
+                        return View();
+                    }
+                    else
+                    {
+                        if (!member.EmailConfirmed)
+                        {
+                            ModelState.AddModelError("", "Please Verify Your Email");
+                            return View();
+                        }
                         return RedirectToAction("index", "Home");
                     }
-                    ModelState.AddModelError("", "Input Correct Informations");
-                    return View();
                 }
                 ModelState.AddModelError("", "Input Correct Informations");
                 return View();
@@ -114,6 +136,76 @@ namespace Pustok.Controllers
             await _signInManager.SignOutAsync();
             return RedirectToAction("index", "home");
         }
+        public IActionResult ForgotPassword()
+        {
+            return View();
+        }
+        [HttpPost]
+        public async Task<IActionResult> ForgotPassword(MemberForgotPasswordViewModel memberVM)
+        {
+            if (!ModelState.IsValid)
+                return View();
+            AppUser member = await _userManager.Users.FirstOrDefaultAsync(x => x.NormalizedEmail == memberVM.Email.ToUpper());
+            if (member == null)
+            {
+                ModelState.AddModelError("", "Type Correct Datas !");
+                return View();
+            }
+            string token =await _userManager.GeneratePasswordResetTokenAsync(member);
+            var url = Url.Action("ResetPassword", "Home", new { email = member.Email, token = token },Request.Scheme);
+            return Ok(new { Url = Url });
+        }
+        public IActionResult ResetPassword(string email , string token)
+        {
+            MemberResetPasswordViewModel Vm = new MemberResetPasswordViewModel()
+            {
+                Email = email,
+                Token = token
+            };
 
+            return View(Vm);
+        }
+
+
+
+
+        //public void SendEmail(string url)
+        //{
+        //    var email = new MimeMessage();
+        //    email.From.Add(MailboxAddress.Parse("bexi@gmail.com"));
+        //    email.To.Add(MailboxAddress.Parse("78pf4jz@code.edu.az"));
+        //    email.Subject = "Thanks for register out Website";
+        //    email.Body = new TextPart(TextFormat.Html) { Text = $@"<a href={url} >Salam</a>" };
+
+        //    // send email
+        //    using var smtp = new MailKit.Net.Smtp.SmtpClient();
+        //    smtp.Connect("smtp.ethereal.email", 587, SecureSocketOptions.StartTls);
+        //    smtp.Authenticate("username", "passwird");
+        //    smtp.Send(email);
+        //    smtp.Disconnect(true);
+        //    System.Web.Mail.MailMessage msg = new System.Web.Mail.MailMessage();
+        //    msg.Body = message.Body;
+
+        //    string smtpServer = "mail.business.it";
+        //    string userName = "username";
+        //    string password = "password";
+        //    int cdoBasic = 1;
+        //    int cdoSendUsingPort = 2;
+        //    if (userName.Length > 0)
+        //    {
+        //        msg.Fields.Add("http://schemas.microsoft.com/cdo/configuration/smtpserver", smtpServer);
+        //        msg.Fields.Add("http://schemas.microsoft.com/cdo/configuration/smtpserverport", 25);
+        //        msg.Fields.Add("http://schemas.microsoft.com/cdo/configuration/sendusing", cdoSendUsingPort);
+        //        msg.Fields.Add("http://schemas.microsoft.com/cdo/configuration/smtpauthenticate", cdoBasic);
+        //        msg.Fields.Add("http://schemas.microsoft.com/cdo/configuration/sendusername", userName);
+        //        msg.Fields.Add("http://schemas.microsoft.com/cdo/configuration/sendpassword", password);
+        //    }
+        //    msg.To = message.Destination;
+        //    msg.From = "me@domain.it";
+        //    msg.Subject = message.Subject;
+        //    msg.BodyFormat = MailFormat.Html;//System.Text.Encoding.UTF8;
+        //    SmtpMail.SmtpServer = smtpServer;
+        //    SmtpMail.Send(msg);
+        //}
     }
 }

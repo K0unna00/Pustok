@@ -142,5 +142,19 @@ namespace Pustok.Areas.Manage.Controllers
             await _signInManager.SignOutAsync();
             return RedirectToAction("Login", "Account");
         }
+        public async Task<IActionResult> ConfirmEmail(string email , string token)
+        {
+            AppUser user =await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                return Content("xx");
+            }
+            var result = await _userManager.ConfirmEmailAsync(user, token);
+            if (result.Succeeded)
+            {
+                return RedirectToAction("index");
+            }
+            return Content("Error");
+        }
     }
 }
