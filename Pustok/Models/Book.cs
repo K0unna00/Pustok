@@ -38,6 +38,7 @@ namespace Pustok.Models
         [NotMapped]
         public List<int> TagIds { get; set; }
         public List<BookTag> BookTags { get; set; } = new List<BookTag>();
+        public List<BookComment> BookComments { get; set; } = new List<BookComment>();
 
     }
 }

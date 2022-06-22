@@ -34,13 +34,13 @@
                                                     <img src="~/assets/image/products/product-1.jpg" alt="">
                                                 </a>
                                                 <div class="hover-btns">
-                                                    <a href="cart.html" class="single-btn">
+                                                    <a asp-action="AddBasket" asp-controller="Home" asp-route-Id="@book.Id" class="single-btn">
                                                         <i class="fas fa-shopping-basket"></i>
                                                     </a>
                                                     <a href="wishlist.html" class="single-btn">
                                                         <i class="fas fa-heart"></i>
                                                     </a>
-                                                    <a href="compare.html" class="single-btn">
+                                                    <a asp-action="BookDetail" asp-controller="Home" class="single-btn">
                                                         <i class="fas fa-random"></i>
                                                     </a>
                                                     <a data-toggle="modal" asp-controller="Home" asp-action="GetBookDetail" asp-route-id="@book.Id"

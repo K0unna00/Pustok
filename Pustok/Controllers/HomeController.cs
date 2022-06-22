@@ -16,6 +16,7 @@ using System.Net.Mail;
 using System.Threading.Tasks;
 using MimeKit;
 using MimeKit.Text;
+using Newtonsoft.Json;
 
 namespace Pustok.Controllers
 {
@@ -153,7 +154,7 @@ namespace Pustok.Controllers
             }
             string token =await _userManager.GeneratePasswordResetTokenAsync(member);
             var url = Url.Action("ResetPassword", "Home", new { email = member.Email, token = token },Request.Scheme);
-            return Ok(new { Url = Url });
+            return Ok(new { Url = url });
         }
         public IActionResult ResetPassword(string email , string token)
         {
@@ -165,9 +166,77 @@ namespace Pustok.Controllers
 
             return View(Vm);
         }
-
-
-
+        [HttpPost]
+        public async Task<IActionResult> ResetPassword(MemberResetPasswordViewModel Vm)
+        {
+            AppUser user =await _userManager.FindByEmailAsync(Vm.Email);
+            if (user == null)
+            {
+                ModelState.AddModelError("", "Type Correct Datas !");
+                return View();
+            }
+            var result = await _userManager.ResetPasswordAsync(user, Vm.Token, Vm.ConfirmPassword);
+            if (result.Succeeded)
+            {
+                return RedirectToAction("Index", "home");
+            }
+            ModelState.AddModelError("", "Someting Wrong");
+            return View();
+            
+        }
+        public IActionResult BookDetail(int Id)
+        {
+            BookDetailViewModel Vm = new BookDetailViewModel()
+            {
+                Book = _context.Books
+                .Include(x => x.Author)
+                .Include(x => x.BookImages)
+                .Include(x => x.Genre)
+                .Include(x => x.BookTags)
+                .FirstOrDefault(x => x.Id == Id)
+            };
+            return View();
+        }
+        public IActionResult SetCookie()
+        {
+            HttpContext.Response.Cookies.Append("name", "hikmet");
+            return Content("");
+        }
+        public IActionResult GetCookie()
+        {
+            var value=HttpContext.Request.Cookies["Basket"];
+            return Content(value);
+        }
+        public IActionResult AddBasket(int Id)
+        {
+            List < BasketItemViewModel > basketItems= null;
+            string basketJson = Request.Cookies["Basket"];
+            if (basketJson == null)
+            {
+                basketItems = new List<BasketItemViewModel>();
+            }
+            else
+            {
+                basketItems = JsonConvert.DeserializeObject<List<BasketItemViewModel>>(basketJson);
+            }
+            var basketItem = basketItems.FirstOrDefault(x => x.BookId == Id);
+            if (basketItem == null)
+            {
+                basketItem = new BasketItemViewModel
+                {
+                    Count=1,
+                    BookId=Id
+                };
+            }
+            else
+            {
+                basketItem.Count++;
+            }
+            basketItems.Add(basketItem);
+            string newBasketJson = JsonConvert.SerializeObject(basketItems);
+            Response.Cookies.Append("Basket",newBasketJson);
+            return RedirectToAction("index", "Home");
+        }
 
         //public void SendEmail(string url)
         //{
